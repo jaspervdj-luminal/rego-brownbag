@@ -35,6 +35,10 @@ patat:
 
  -  Interactive part
 
+ -  Advanced Rego topics
+     *  Comprehensions
+     *  Unification
+
 ## Tools
 
 We're using fregot:
@@ -343,6 +347,69 @@ Rules can have _bodies_.  A body is a list of _queries_.
 cat rules/rule1.rego
 ```
 
+## How do I read queries?
+
+    rule = result_1 {
+        query_1_a
+        query_1_b
+    }
+
+    rule = result_2 {
+        query_2_a
+        query_2_b
+    }
+
+Read as:
+
+    IF query_1_a AND query_1_b THEN rule = result_1
+    IF query_2_a AND query_2_b THEN rule = result_2
+
+## How do I read queries?
+
+    rule = result_1 {
+        query_1_a
+        query_1_b
+    } {
+        query_2_a
+        query_2_b
+    }
+
+Read as:
+
+    IF query_1_a AND query_1_b THEN rule = result_1
+    IF query_2_a AND query_2_b THEN rule = result_1
+
+Alternatively:
+
+    IF (query_1_a AND query_1_b) OR (query_2_a AND query_2_b)
+    THEN rule = result_1
+
+## How do I read queries?
+
+    rule {
+        query_1_a
+        query_1_b
+    }
+
+Read as:
+
+    IF query_1_a AND query_1_b THEN rule = true
+
+## How do I read queries?
+
+    rule = result_1 {
+        query_1_a
+        query_1_b
+    }
+
+    default rule = result_2
+
+Read as:
+
+    IF query_1_a AND query_1_b THEN rule = result_1
+
+    ELSE rule = result_2
+
 ## Kind of rules
 
 There are different kinds of rules:
@@ -387,9 +454,230 @@ cat rules/rule3.rego
 allowed_ports  # ?
 ```
 
-## Functions
+## Kinds of rules
 
-## Tests
+### Functions
+
+What makes functions special?
+
+```rego
+double(x) = y {
+  y = x + x
+}
+double(10)  # ?
+```
+
+We cannot iterate over all "double" values.
+
+## Kinds of rules
+
+### Functions
+
+What makes functions special?
+
+```rego
+double[x] = y {
+  nums = [1, 2, 3]
+  x = nums[_]
+  y = x + x
+}
+double[1]  # ?
+double[_]  # ?
+```
+
+We can iterate over all "rule" values, because it must assign each variable
+including `x`.
+
+## Kinds of rules
+
+### Functions
+
+What makes functions special?
+
+    double(x) = y {
+      y = x * x
+    }
+
+Normal rules can be evaluated in different ways:
+
+ -  `double[1]`: is `1` a member of the rule?  Give me it's value.
+ -  `double[x]`: solve for `x`.
+ -  `double`: give me the entire object.
+
+Functions can only be evaluated in a single way:
+
+ -  `double(2)`: What is double of `2`?
+
+## Kinds of rules
+
+### Tests
+
+Tests are just normal rules that start with `test_`.
+
+    test_double {
+      double(1) == 2
+    }
+
+Just run `fregot test [all input files]` and you're done.
+
+    fregot test aws/ azurerm/ fugue/
+    passed: 630, failed: 0, errored: 0
+
+# Fugue rules
+
+## What are Fugue rules?
+
+We've seen that Rego is really just a language for producing JSON based on an
+input document, so any "engine" using Rego relies on _conventions_.
+
+## Simple rules
+
+```rego
+:input inputs/resource1.json
+input.ingress  # ?
+```
+
+## Simple rules
+
+Conventions:
+
+ -  There must be a `resource_type` rule (`string`)
+ -  There must be a `deny` rule (`bool`)
+
+```eval
+cat rules/rule4.rego
+```
+
+## Simple rules
+
+Evaluation
+
+```bash
+fregot eval 'data' rules/rule4.rego | jq '.'
+```
+
+## Simple rules
+
+Interactive evaluation with `fregot repl`:
+
+```rego
+:load rules/rule4.rego
+:input inputs/resource1.json
+deny  # ?
+```
+
+## Simple rules
+
+Conventions:
+
+ -  There must be a `resource_type` rule (`string`)
+ -  There must either be a `deny` rule (`bool`)...
+ -  ...or an `allow` rule (`bool`)...
+ -  ...or both.
+
+Use whatever is easier!
+
+## Simple rules
+
+Conventions for custom messages:
+
+ -  There must be a `resource_type` rule (`string`)
+ -  There must be a `deny` rule (`set<string>`)
+
+```rego
+deny[msg] {
+  true
+  msg = "Not allowed"
+}
+deny  #?
+```
+
+## Advanced rules
+
+```eval
+cat rules/rule5.rego
+```
+
+## Advanced rules
+
+Conventions:
+
+ -  There must be a `policy` rule (`set<judgement>`)
+
+You can use the `data.fugue` API to do this:
+
+ -  `fugue.resources("resource_type")` gives you resources of a type
+ -  `fugue.allow_resource(resource)` makes a valid judgement
+ -  `fugue.deny_resource(resource)` makes an invalid judgement
+
+## Advanced rules
+
+Evaluation
+
+```bash
+fregot eval -i inputs/everything.json \
+    'data.rules.aws.ports_by_account.policy' \
+    lib/fugue.rego rules/rule5.rego | jq '.'
+```
+
+## Advanced rules
+
+Are advanced rules "better"?
+
+. . .
+
+**No**
+
+. . .
+
+Should I use a advanced rule?
+
+ -  Yes/no decision about a single resource: **No**
+ -  Anything else: **Yes**
+
+## Advanced rules
+
+Conventions:
+
+ -  There must be a `policy` rule (`set<judgement>`)
+
+Full API:
+
+ -  `fugue.resources(resource_type)`
+ -  `fugue.allow_resource(resource)`
+ -  `fugue.deny_resource(resource)`
+ -  `fugue.missing_resource(resource)`
+ -  `fugue.deny_resource_with_message(resource, msg)`
+ -  `fugue.missing_resource_with_message(resource, msg)`
+ -  `fugue.resource_types_v0`
+
+# Interactive part
+
+## Important links
+
+Put `fregot` in your `PATH`: <https://github.com/fugue/fregot>
+
+Run commands from the root of this repository:
+<https://github.com/jaspervdj-luminal/rego-brownbag>
+
+## Let's look at a rule
+
+```bash
+head -n 3 rules/ports_by_account.rego
+```
+
+Evaluating with `fregot repl --watch`:
+
+```rego
+:input inputs/resource2.json
+:load rules/ports_by_account.rego
+deny  # ?
+account_id  # ?
+```
+
+# Advanced Rego topics
+
+## Comprehensions
 
 ## Unification
 

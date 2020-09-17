@@ -39,6 +39,6 @@
       "name": "sg_443",
       "owner_id": "622401240280",
       "revoke_rules_on_delete": false,
-      "tags": {},
+      "tags": {"env": "staging"},
       "vpc_id": "vpc-52ee6a37"
     }

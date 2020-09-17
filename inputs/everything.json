@@ -56,7 +56,7 @@
       "name": "sg_22",
       "owner_id": "622401240280",
       "revoke_rules_on_delete": false,
-      "tags": {},
+      "tags": {"env": "prod"},
       "vpc_id": "vpc-52ee6a37"
     },
     "aws_security_group.sg_443": {
@@ -100,7 +100,7 @@
       "name": "sg_443",
       "owner_id": "622401240280",
       "revoke_rules_on_delete": false,
-      "tags": {},
+      "tags": {"env": "staging"},
       "vpc_id": "vpc-52ee6a37"
     },
     "aws_security_group.sg_80": {
@@ -144,7 +144,7 @@
       "name": "sg_80",
       "owner_id": "622401240280",
       "revoke_rules_on_delete": false,
-      "tags": {},
+      "tags": {"env": "prod"},
       "vpc_id": "vpc-52ee6a37"
     }
   }
