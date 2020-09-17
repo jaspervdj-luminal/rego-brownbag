@@ -12,6 +12,10 @@ patat:
       command: node
     bash:
       command: bash
+    eval:
+      command: bash
+      fragment: false
+      replace: true
 ...
 
 # What is Rego?
@@ -24,6 +28,14 @@ be familiar with including JavaScript and SQL.
 . . .
 
 Gradually we'll focus deeper and deeper on what sets Rego apart.
+
+## Tools
+
+We're using fregot:
+
+<https://github.com/fugue/fregot>
+
+Releases > darwin binary works on Mac OS X.
 
 ## Rego is like JavaScript
 
@@ -86,8 +98,6 @@ Full list at:
 
 Find natural numbers that add up to 5:
 
-## Rego is like JavaScript
-
 ```javascript
 const numbers = [1, 2, 3, 4, 5];
 var pairs = [];
@@ -141,6 +151,8 @@ FROM numbers AS n1 JOIN numbers AS n2
 WHERE n1.value < n2.value AND n1.value + n2.value = 5;
 ```
 
+...but with first-class JSON support and friendlier syntax
+
 ## Rego is like jq
 
 ```bash
@@ -148,8 +160,10 @@ jq_script='
     .[] as $x | .[] as $y |
     select($x<$y) | select($x+$y==5) |
     [$x, $y]'
-echo '[1, 2, 3, 4, 5]' | jq "$jq_script"
+echo '[1, 2, 3, 4, 5]' | jq -c "$jq_script"
 ```
+
+...but sometimes you can actually read the code
 
 ## Conclusion
 
@@ -158,7 +172,60 @@ echo '[1, 2, 3, 4, 5]' | jq "$jq_script"
  -  But it's not an imperative language
  -  Closer to datalog, SQL, jq, prolog
 
-# Rules and queries
+# Modules, rules and queries
+
+## The Rego tree
+
+In Rego, everything is immutable, which means that almost* everything is data:
+
+    data
+    |-package a
+    | |-package a.x
+    |   |-rule a.x.foo
+    |-package b
+      |-rule b.bar
+
+## The Rego tree
+
+```rego
+:open a.x
+foo = 1
+data  # ?
+data.a.x.foo  # ?
+```
+
+## The Rego tree
+
+```eval
+cat rule0.rego
+```
+
+```bash
+fregot eval 'data' rule0.rego | jq '.'
+```
+
+All your rules are just data!
+
+## The Rego tree
+
+Working with the Rego tree:
+
+    import data.rules.aws.ports_by_account
+    foo = ports_by_account.allowed_ports
+
+. . .
+
+    import data.rules.aws
+    foo = aws.ports_by_account.allowed_ports
+
+. . .
+
+    import data.rules as top
+    foo = top.aws.ports_by_account.allowed_ports
+
+. . .
+
+    foo = data.rules.aws.ports_by_account.allowed_ports
 
 ## Unification
 
