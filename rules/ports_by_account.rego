@@ -66,3 +66,4 @@ deny {
 #     }
 #
 # Check the OPA reference for printing functions!
+# <https://www.openpolicyagent.org/docs/latest/policy-reference/#built-in-functions>

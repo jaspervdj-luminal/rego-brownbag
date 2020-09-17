@@ -308,7 +308,7 @@ x = numbers[i]; [i, x]  # ?
 ## What is a query?
 
 A query is a pure function that takes the current environment, and produces a
-list of new environments:
+list of new environments and results:
 
 ```rego
 numbers = ["zero", "one"]
@@ -319,7 +319,7 @@ x = numbers[i]; [i, x]  # ?
 ## What is a query?
 
 A query is a pure function that takes the current environment, and produces a
-list of new environments:
+list of new environments and results:
 
 ```rego
 numbers = ["zero", "one"]
@@ -330,7 +330,7 @@ x = numbers[i]; [i, x]  # ?
 ## What is a query?
 
 A query is a pure function that takes the current environment, and produces a
-list of new environments:
+list of new environments and results:
 
     numbers = ["zero", "one"]
     x = numbers[i]; [i, x]
@@ -351,62 +351,62 @@ cat rules/rule1.rego
 
     rule = result_1 {
         query_1_a
-        query_1_b
+        not query_1_b
     }
 
     rule = result_2 {
         query_2_a
-        query_2_b
+        not query_2_b
     }
 
 Read as:
 
-    IF query_1_a AND query_1_b THEN rule = result_1
-    IF query_2_a AND query_2_b THEN rule = result_2
+    IF query_1_a AND not query_1_b THEN rule = result_1
+    IF query_2_a AND not query_2_b THEN rule = result_2
 
 ## How do I read queries?
 
     rule = result_1 {
         query_1_a
-        query_1_b
+        not query_1_b
     } {
         query_2_a
-        query_2_b
+        not query_2_b
     }
 
 Read as:
 
-    IF query_1_a AND query_1_b THEN rule = result_1
-    IF query_2_a AND query_2_b THEN rule = result_1
+    IF query_1_a AND not query_1_b THEN rule = result_1
+    IF query_2_a AND not query_2_b THEN rule = result_1
 
 Alternatively:
 
-    IF (query_1_a AND query_1_b) OR (query_2_a AND query_2_b)
+    IF (query_1_a AND not query_1_b) OR (query_2_a AND not query_2_b)
     THEN rule = result_1
 
 ## How do I read queries?
 
     rule {
         query_1_a
-        query_1_b
+        not query_1_b
     }
 
 Read as:
 
-    IF query_1_a AND query_1_b THEN rule = true
+    IF query_1_a AND not query_1_b THEN rule = true
 
 ## How do I read queries?
 
     rule = result_1 {
         query_1_a
-        query_1_b
+        not query_1_b
     }
 
     default rule = result_2
 
 Read as:
 
-    IF query_1_a AND query_1_b THEN rule = result_1
+    IF query_1_a AND not query_1_b THEN rule = result_1
 
     ELSE rule = result_2
 
@@ -664,6 +664,7 @@ Run commands from the root of this repository:
 
 1.  Obtain input (this is the hard part)
 2.  Write the rule (this is easy cruising)
+3.  Write some tests (copy and paste)
 
 ## Writing a rule
 
@@ -672,8 +673,8 @@ We already have the input
        ---------------------------.
      `/""""/""""/|""|'|""||""|   ' \.
      /    /    / |__| |__||__|      |
-    /----------=====================|
-    | \  /V\  /    _.               |
+    /----------=====================|   easy
+    | \  /V\  /    _.               |   crusing
     |()\ \W/ /()   _            _   |
     |   \   /     / \          / \  |-( )
     =C========C==_| ) |--------| ) _/==] _-{_}_)
@@ -699,6 +700,55 @@ account_id  # ?
 # Advanced Rego topics
 
 ## Comprehensions
+
+```rego
+:input inputs/everything.json
+:load lib/fugue.rego
+:open repl
+aws_security_groups_by_env[env] = sgs {
+  security_groups = data.fugue.resources("aws_security_group")
+  env = security_groups[_].tags.env
+  sgs = {sg.id |
+    sg = security_groups[_]
+    sg.tags.env == env
+  }
+}
+aws_security_groups_by_env
+```
+
+## Comprehensions
+
+```rego
+:input inputs/everything.json
+:load lib/fugue.rego
+:open repl
+aws_security_groups_by_env[env] = sgs {
+  security_groups = data.fugue.resources("aws_security_group")
+  env = security_groups[_].tags.env
+  sgs = [sg.id |
+    sg = security_groups[_]
+    sg.tags.env == env
+  ]
+}
+aws_security_groups_by_env
+```
+
+## Comprehensions
+
+```rego
+:input inputs/everything.json
+:load lib/fugue.rego
+:open repl
+aws_security_groups_by_env[env] = sgs {
+  security_groups = data.fugue.resources("aws_security_group")
+  env = security_groups[_].tags.env
+  sgs = {sg.id: sg |
+    sg = security_groups[_]
+    sg.tags.env == env
+  }
+}
+aws_security_groups_by_env
+```
 
 ## Unification
 
