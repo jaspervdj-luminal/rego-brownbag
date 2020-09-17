@@ -1,0 +1,44 @@
+{
+      "_provider": "provider.aws",
+      "_skeleton": {
+        "depends_on": [],
+        "deposed": [],
+        "primary": {
+          "id": "sg-0e0e7d1850ecf713d",
+          "meta": {
+            "e2bfb730-ecaa-11e6-8f88-34363bc7c4c0": {
+              "create": 600000000000,
+              "delete": 600000000000
+            },
+            "schema_version": "1"
+          },
+          "tainted": false
+        },
+        "provider": "provider.aws",
+        "type": "aws_security_group"
+      },
+      "_type": "aws_security_group",
+      "arn": "arn:aws:ec2:eu-west-1:622401240280:security-group/sg-0e0e7d1850ecf713d",
+      "description": "Managed by Terraform",
+      "egress": [],
+      "id": "sg-0e0e7d1850ecf713d",
+      "ingress": [
+        {
+          "cidr_blocks": [
+            "213.55.241.52/32"
+          ],
+          "from_port": 22,
+          "ipv6_cidr_blocks": [],
+          "prefix_list_ids": [],
+          "protocol": "tcp",
+          "security_groups": [],
+          "self": false,
+          "to_port": 22
+        }
+      ],
+      "name": "sg_22",
+      "owner_id": "622401240280",
+      "revoke_rules_on_delete": false,
+      "tags": {},
+      "vpc_id": "vpc-52ee6a37"
+}

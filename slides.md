@@ -18,16 +18,22 @@ patat:
       replace: true
 ...
 
-# What is Rego?
+# Introduction
 
-## Introduction
+## About this talk
 
-We'll compare Rego to a few other languages, including ones which you may
-be familiar with including JavaScript and SQL.
+ -  Let's learn Rego
+     *  We'll compare Rego to a few other languages, including ones which you
+        may be familiar with including JavaScript and SQL.
+     *  Gradually we'll focus deeper and deeper on what sets Rego apart.
+     *  Packages, input, rules
 
-. . .
+ -  Fugue rules
+     *  Simple rules
+     *  Advanced rules
+     *  Custom error messages
 
-Gradually we'll focus deeper and deeper on what sets Rego apart.
+ -  Interactive part
 
 ## Tools
 
@@ -36,6 +42,20 @@ We're using fregot:
 <https://github.com/fugue/fregot>
 
 Releases > darwin binary works on Mac OS X.
+
+. . .
+
+Please stop me at any time to ask questions.
+
+## Repository
+
+<https://github.com/jaspervdj-luminal/rego-brownbag>
+
+```eval
+tree
+```
+
+# What is Rego?
 
 ## Rego is like JavaScript
 
@@ -124,9 +144,7 @@ Ok so Rego is actually not like JavaScript:
      *  Order isn't that important
      *  Non Turing-Completeness allows for tricks™
 
-## Rego is a query language
-
-Ok but actually no
+## Rego is not like JavaScript
 
 ```rego
 numbers = [1, 2, 3, 4, 5]
@@ -187,6 +205,8 @@ In Rego, everything is immutable, which means that almost* everything is data:
 
 ## The Rego tree
 
+In `fregot repl`, you're always in the "open" package:
+
 ```rego
 :open a.x
 foo = 1
@@ -197,11 +217,11 @@ data.a.x.foo  # ?
 ## The Rego tree
 
 ```eval
-cat rule0.rego
+cat rules/rule0.rego
 ```
 
 ```bash
-fregot eval 'data' rule0.rego | jq '.'
+fregot eval 'data' rules/rule0.rego | jq '.'
 ```
 
 All your rules are just data!
@@ -226,6 +246,150 @@ Working with the Rego tree:
 . . .
 
     foo = data.rules.aws.ports_by_account.allowed_ports
+
+## The Rego tree
+
+Aside from `data.`, there's `input.` which holds the _input document_.
+
+You can set this by using `--input foo.json` on the command line or by using
+`:input` in `fregot repl`:
+
+```rego
+:input inputs/resource1.json
+input.id
+```
+
+## The Rego tree: conclusion
+
+Two JSON trees:
+
+ -  `input` is the static input JSON document.  In the case of Fugue Rules, this
+    is either a single resource or a collection of resources.
+
+ -  `data` is derived _from input_ through the rules you load, but it is also
+    just a static document.
+
+## What is inside the Rego tree?
+
+Rules and functions.
+
+    package rules.aws.ports_by_account
+
+    resource_type = "aws_security_group"
+
+## What is inside the Rego tree?
+
+Rules can have _bodies_.  A body is a list of _queries_.
+
+```eval
+cat rules/rule1.rego
+```
+
+```rego
+:input inputs/resource1.json
+:load rules/rule1.rego
+account_id  # ?
+```
+
+## What is a query?
+
+A query is a pure function that takes the current environment, and produces a
+list of new environments:
+
+```rego
+numbers = ["zero", "one"]
+x = numbers[i]; [i, x]  # ?
+```
+
+## What is a query?
+
+A query is a pure function that takes the current environment, and produces a
+list of new environments:
+
+```rego
+numbers = ["zero", "one"]
+x = "one"
+x = numbers[i]; [i, x]  # ?
+```
+
+## What is a query?
+
+A query is a pure function that takes the current environment, and produces a
+list of new environments:
+
+```rego
+numbers = ["zero", "one"]
+i = 3
+x = numbers[i]; [i, x]  # ?
+```
+
+## What is a query?
+
+A query is a pure function that takes the current environment, and produces a
+list of new environments:
+
+    numbers = ["zero", "one"]
+    x = numbers[i]; [i, x]
+
+ -  `{}           ->  [{i = 0, x = "zero"}, {i = 1, x = "one"}]`
+ -  `{x = "one"}  ->  [{i = 1, x = "one"}]`
+ -  `{i = 3}      ->  []`
+
+## What is inside the Rego tree?
+
+Rules can have _bodies_.  A body is a list of _queries_.
+
+```eval
+cat rules/rule1.rego
+```
+
+## Kind of rules
+
+There are different kinds of rules:
+
+ -  Complete rule (_single result_)
+ -  Set rules (_generate sets_)
+ -  Object rules (_generate objects_)
+
+And then there are functions which are slightly different:
+
+ -  Partial rules (_aka functions_)
+
+All of these rules can have a body consisting of queries.
+
+## Kind of rules
+
+### Set rules
+
+```eval
+cat rules/rule2.rego
+```
+
+```rego
+:input inputs/resource1.json
+:load rules/rule1.rego
+:load rules/rule2.rego
+allowed_ports  # ?
+```
+
+## Kind of rules
+
+### Object rules
+
+```eval
+cat rules/rule3.rego
+```
+
+```rego
+:input inputs/resource1.json
+:load rules/rule1.rego
+:load rules/rule3.rego
+allowed_ports  # ?
+```
+
+## Functions
+
+## Tests
 
 ## Unification
 
