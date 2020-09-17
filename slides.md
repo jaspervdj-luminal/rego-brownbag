@@ -660,7 +660,28 @@ Put `fregot` in your `PATH`: <https://github.com/fugue/fregot>
 Run commands from the root of this repository:
 <https://github.com/jaspervdj-luminal/rego-brownbag>
 
-## Let's look at a rule
+## Writing a rule
+
+1.  Obtain input (this is the hard part)
+2.  Write the rule (this is easy cruising)
+
+## Writing a rule
+
+We already have the input
+
+       ---------------------------.
+     `/""""/""""/|""|'|""||""|   ' \.
+     /    /    / |__| |__||__|      |
+    /----------=====================|
+    | \  /V\  /    _.               |
+    |()\ \W/ /()   _            _   |
+    |   \   /     / \          / \  |-( )
+    =C========C==_| ) |--------| ) _/==] _-{_}_)
+     \_\_/__..  \_\_/_ \_\_/ \_\_/__.__.
+
+## Writing a rule
+
+Let's look at a rule
 
 ```bash
 head -n 3 rules/ports_by_account.rego
